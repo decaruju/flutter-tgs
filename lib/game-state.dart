@@ -21,6 +21,17 @@ class GameState {
     this.resources.water -= tree.cells.length / 200 * sunlight;
   }
 
+  bool canRhyzome(Cell cell) {
+    for (int y=0; y<cell.y; y++) {
+      for (int x=cell.x-1; x<cell.x + 2; x++) {
+        if (tree.contains(Cell(x: x, y: y))) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   bool canBuild(Cell cell) {
     return cell.y != 0 &&
         !tree.contains(cell) &&
@@ -46,9 +57,28 @@ class GameState {
     }
   }
 
+  void growRhyzomes() {
+    List<Cell> toAdd = [];
+    for (Cell cell in tree.rhyzomes) {
+      this.resources.sun -= 10;
+      this.resources.water -= 10;
+      tree.cells.add(cell);
+      if (cell.y > 0) {
+        toAdd.add(Cell(x: cell.x, y: cell.y - 1));
+      }
+    }
+    tree.rhyzomes.clear();
+    for (Cell cell in toAdd) {
+      tree.rhyzomes.add(cell);
+    }
+  }
+
   void tick() {
     this.addResources();
     this.useResources();
+    if (this.time % BigInt.from(100) == BigInt.from(0)) {
+      growRhyzomes();
+    }
     this.time += BigInt.from(1);
     if (this.resources.empty) {
       this.killCell();
@@ -63,10 +93,17 @@ class GameState {
     return between(cos(this.angle - pi) * 0.7 + 0.5, 0, 1);
   }
 
-  void buildCell(cell) {
-    tree.add(cell);
-    this.resources.sun -= 10;
-    this.resources.water -= 10;
+  void buildCell(Cell cell) {
+    if (tree.contains(cell)) {
+      if (cell.y > 0) {
+        tree.addRhyzome(cell);
+      } else if (cell.y < 0) {
+      }
+    } else {
+      tree.add(cell);
+      this.resources.sun -= 10;
+      this.resources.water -= 10;
+    }
   }
 }
 
@@ -75,8 +112,8 @@ class _Resources {
   double water;
 
   _Resources() {
-    this.sun = 10;
-    this.water = 10;
+    this.sun = 1000;
+    this.water = 1000;
   }
 
   bool get empty {

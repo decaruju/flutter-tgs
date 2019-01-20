@@ -3,7 +3,7 @@ import 'dart:math';
 class Cell {
   int x;
   int y;
-  
+
   static List<Cell> directions = [Cell(x: 0, y: 1), Cell(x: 0, y: -1), Cell(x: 1, y: 0), Cell(x: -1, y: 0)];
 
   Cell({this.x, this.y});
@@ -18,7 +18,7 @@ class Cell {
 
   Cell operator +(rhs) {
     return Cell(
-      x: this.x + rhs.x, 
+      x: this.x + rhs.x,
       y: this.y + rhs.y
     );
   }
@@ -34,19 +34,30 @@ class Cell {
 
 class TreePolyomino{
   List<Cell> cells;
+  List<Cell> rhyzomes;
   static final Random _random = new Random();
 
   TreePolyomino() {
     this.cells = List<Cell>();
+    this.rhyzomes = List<Cell>();
     this.cells.add(Cell(x: 0, y: 0));
   }
 
+  List<Cell> get allCells {
+    return cells + rhyzomes;
+  }
+
   int degree(Cell c) {
-    return c.neighbors().map((c) => cells.contains(c) ? 1 : 0).reduce((elem, total) => elem + total);
+    return c.neighbors().map((c) => allCells.contains(c) ? 1 : 0).reduce((elem, total) => elem + total);
   }
 
   bool contains(Cell c) {
-    return cells.contains(c);
+    return allCells.contains(c);
+  }
+
+  void addRhyzome(Cell c) {
+    cells.remove(c);
+    rhyzomes.add(c);
   }
 
   void add(Cell c) {
@@ -69,7 +80,14 @@ class TreePolyomino{
     for (Cell cell in cells) {
       for (Cell otherCell in cell.neighbors()) {
         if (degree(otherCell) == 1 && otherCell.y != 0) {
-          rtn.add(otherCell);
+          if (rhyzomes.length == 0) {
+            if (!rtn.contains(otherCell)) {
+              rtn.add(otherCell);
+            }
+          }
+          if (all(rhyzomes, (rhyzome) => otherCell.y > rhyzome.y || (otherCell.x - rhyzome.x).abs() > 1)) {
+            rtn.add(otherCell);
+          }
         }
       }
     }
@@ -78,7 +96,6 @@ class TreePolyomino{
 
   int randomCell() {
     return _random.nextInt(this.cells.length);
-
   }
 
   bool killLeaf() {
@@ -99,6 +116,10 @@ class TreePolyomino{
     if (this.numberOfRoots == 1) {
       return false;
     }
+    if (this.rhyzomes.length > 0) {
+      this.rhyzomes.clear();
+      return true;
+    }
     Cell cell;
     int i;
     do {
@@ -108,4 +129,13 @@ class TreePolyomino{
     this.cells.removeAt(i);
     return true;
   }
+}
+
+bool all(collection, function) {
+  for (var elem in collection) {
+    if (!function(elem)) {
+      return false;
+    }
+  }
+  return true;
 }

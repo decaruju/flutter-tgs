@@ -52,6 +52,10 @@ class TreePainter extends CustomPainter {
     for (var cell in this.tree.cells) {
       this.drawCell(cell, canvas, treePaint);
     }
+    treePaint.color = Colors.green;
+    for (var cell in this.tree.rhyzomes) {
+      this.drawCell(cell, canvas, treePaint);
+    }
   }
 
   List<double> scaleMove(Cell cell) {

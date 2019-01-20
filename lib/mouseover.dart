@@ -7,13 +7,16 @@ class Mouseover extends StatelessWidget {
   bool visible;
   var confirmCallback;
   var cancelCallback;
+  Text text;
 
   Mouseover(
       {this.offset,
       this.position,
       this.visible,
       this.confirmCallback,
-      this.cancelCallback});
+      this.cancelCallback,
+      this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class Mouseover extends StatelessWidget {
             left: this.offset.dx + position, top: this.offset.dy),
         child: Column(
           children: <Widget>[
-            Text("Sup"),
+            text,
             Row(
               children: <Widget>[
                 MaterialButton(

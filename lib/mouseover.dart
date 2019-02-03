@@ -2,17 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class Mouseover extends StatelessWidget {
-  Offset offset;
-  double position;
   bool visible;
   var confirmCallback;
   var cancelCallback;
   Text text;
 
   Mouseover(
-      {this.offset,
-      this.position,
-      this.visible,
+      {this.visible,
       this.confirmCallback,
       this.cancelCallback,
       this.text,
@@ -20,11 +16,10 @@ class Mouseover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+         print(this.visible);
     return Offstage(
       offstage: !this.visible,
       child: Container(
-        padding: EdgeInsets.only(
-            left: this.offset.dx + position, top: this.offset.dy),
         child: Column(
           children: <Widget>[
             text,

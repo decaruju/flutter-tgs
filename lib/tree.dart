@@ -6,8 +6,11 @@ class Tree extends StatelessWidget {
   final double scale;
   final TreePolyomino tree;
   final size;
+  final Cell currentCell;
+  final pointToScreen;
+  bool visible;
 
-  Tree({this.position, this.scale, this.tree, this.size});
+  Tree({this.position, this.scale, this.tree, this.size, this.currentCell, this.pointToScreen, this.visible});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +20,9 @@ class Tree extends StatelessWidget {
         scale: this.scale,
         tree: this.tree,
         size: this.size,
+        currentCell: this.currentCell,
+        pointToScreen: this.pointToScreen,
+        visible: visible,
       ),
     );
   }
@@ -27,8 +33,11 @@ class TreePainter extends CustomPainter {
   double scale;
   final size;
   final TreePolyomino tree;
+  final Cell currentCell;
+  final pointToScreen;
+  bool visible;
 
-  TreePainter({this.position, this.tree, this.scale, this.size});
+  TreePainter({this.position, this.tree, this.scale, this.size, this.currentCell, this.pointToScreen, this.visible});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -48,32 +57,111 @@ class TreePainter extends CustomPainter {
     for (Cell cell in this.tree.freeNeighbors()) {
       this.drawCell(cell, canvas, treePaint);
     }
-    treePaint.color = Colors.cyan;
     for (var cell in this.tree.cells) {
       this.drawCell(cell, canvas, treePaint);
     }
-    treePaint.color = Colors.green;
-    for (var cell in this.tree.rhyzomes) {
+    for (var cell in this.tree.rhizomes) {
       this.drawCell(cell, canvas, treePaint);
     }
+    this.drawCell(currentCell, canvas, treePaint);
   }
 
-  List<double> scaleMove(Cell cell) {
-    return [
-      (cell.x*20+1 +this.position)*this.scale,
-      (cell.y*20+1)*this.scale+2*size.height/3-15,
-      (cell.x*20+19+this.position)*this.scale,
-      (cell.y*20+19)*this.scale+2*size.height/3-15,
-    ];
+  Offset cellToPoint(Cell cell) {
+    return Offset(
+        cell.x * 20.0,
+        cell.y * 20.0,
+      );
   }
 
   void drawCell(Cell cell, Canvas canvas, Paint paint) {
-    var list = this.scaleMove(cell);
-    var l = list[0];
-    var t = list[1];
-    var r = list[2];
-    var b = list[3];
-    canvas.drawRect(new Rect.fromLTRB(l, t, r, b), paint);
+    Offset point = this.cellToPoint(cell);
+    if (visible && cell == currentCell) {
+      paint.color = Colors.white;
+      canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+      return;
+    }
+    switch (tree.cellType(cell)) {
+      case CellType.notIn:
+        paint.color = Colors.black38;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        break;
+      case CellType.none:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        break;
+      case CellType.full:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        break;
+      case CellType.leafRight:
+        paint.color = Colors.green;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        canvas.drawOval(Rect.fromPoints(pointToScreen(point + Offset(0, 0), 1.0, true,), pointToScreen(point + Offset(20, 20), 1.0, true,),), paint);
+        break;
+      case CellType.leafLeft:
+        paint.color = Colors.green;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        canvas.drawOval(Rect.fromPoints(pointToScreen(point + Offset(0, 0), 1.0, true,), pointToScreen(point + Offset(20, 20), 1.0, true,),), paint);
+        break;
+      case CellType.leafUp:
+        paint.color = Colors.green;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        canvas.drawOval(Rect.fromPoints(pointToScreen(point + Offset(0, 0), 1.0, true,), pointToScreen(point + Offset(20, 20), 1.0, true,),), paint);
+        break;
+      case CellType.leafDown:
+        paint.color = Colors.green;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        canvas.drawOval(Rect.fromPoints(pointToScreen(point + Offset(0, 0), 1.0, true,), pointToScreen(point + Offset(20, 20), 1.0, true,),), paint);
+        break;
+      case CellType.horizontal:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        break;
+      case CellType.vertical:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        break;
+      case CellType.teeUp:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        break;
+      case CellType.teeDown:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        break;
+      case CellType.teeRight:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        break;
+      case CellType.teeLeft:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        break;
+      case CellType.upRight:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        break;
+      case CellType.upLeft:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 0), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        break;
+      case CellType.downRight:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(20, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        break;
+      case CellType.downLeft:
+        paint.color = Colors.brown;
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(0, 5), 1.0, true,), pointToScreen(point + Offset(15, 15), 1.0, true,),), paint);
+        canvas.drawRect(Rect.fromPoints(pointToScreen(point + Offset(5, 5), 1.0, true,), pointToScreen(point + Offset(15, 20), 1.0, true,),), paint);
+        break;
+    }
   }
 }
-

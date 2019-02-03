@@ -9,12 +9,12 @@ class Ground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint( 
-        foregroundPainter: GroundPainter(
-          size: this.size,
-          position: this.position
-        ),
-      );
+    return CustomPaint(
+      foregroundPainter: GroundPainter(
+        size: this.size,
+        position: this.position
+      ),
+    );
   }
 }
 
@@ -40,8 +40,8 @@ class GroundPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     canvas.drawRect(new Rect.fromLTRB(0, 2*size.height/3, size.width, size.height), groundPaint);
-    groundPaint.color = groundPaint.color.withAlpha(200);
+    canvas.drawRect(new Rect.fromLTRB(0, 2*size.height/3, size.width, size.height), groundPaint);
+    groundPaint.color = Colors.white12;
     canvas.drawRect(new Rect.fromLTRB(0, 2*size.height/3 - 10, size.width, size.height), groundPaint);
-    groundPaint.color = Colors.black12;
   }
 }

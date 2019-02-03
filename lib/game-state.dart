@@ -1,14 +1,31 @@
 import 'tree-polyomino.dart';
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 class GameState {
   TreePolyomino tree;
   _Resources resources;
   BigInt time;
+  Cell currentCell;
+  int menu;
+  string mouseOverText;
+  bool mouseOverVisible;
 
   GameState({this.tree}) {
     this.resources = _Resources();
     this.time = BigInt.from(0);
+    this.menu = 0;
+    this.currentCell = Cell(x: 0, y: 0);
+    this.mouseOverText = '';
+    this.mouseOverVisible = false;
+  }
+
+  void openMenu(int i) {
+    if (i == this.menu) {
+      this.menu = 0;
+    } else {
+      this.menu = i;
+    }
   }
 
   void addResources() {
@@ -21,7 +38,7 @@ class GameState {
     this.resources.water -= tree.cells.length / 200 * sunlight;
   }
 
-  bool canRhyzome(Cell cell) {
+  bool canRhizome(Cell cell) {
     for (int y=0; y<cell.y; y++) {
       for (int x=cell.x-1; x<cell.x + 2; x++) {
         if (tree.contains(Cell(x: x, y: y))) {
@@ -57,9 +74,9 @@ class GameState {
     }
   }
 
-  void growRhyzomes() {
+  void growRhizomes() {
     List<Cell> toAdd = [];
-    for (Cell cell in tree.rhyzomes) {
+    for (Cell cell in tree.rhizomes) {
       this.resources.sun -= 10;
       this.resources.water -= 10;
       tree.cells.add(cell);
@@ -67,9 +84,9 @@ class GameState {
         toAdd.add(Cell(x: cell.x, y: cell.y - 1));
       }
     }
-    tree.rhyzomes.clear();
+    tree.rhizomes.clear();
     for (Cell cell in toAdd) {
-      tree.rhyzomes.add(cell);
+      tree.rhizomes.add(cell);
     }
   }
 
@@ -77,7 +94,7 @@ class GameState {
     this.addResources();
     this.useResources();
     if (this.time % BigInt.from(100) == BigInt.from(0)) {
-      growRhyzomes();
+      growRhizomes();
     }
     this.time += BigInt.from(1);
     if (this.resources.empty) {
@@ -86,7 +103,7 @@ class GameState {
   }
 
   double get angle {
-    return (this.time % BigInt.from(1000)).toDouble() / 1000 * 2 * pi + pi / 2;
+    return (this.time % BigInt.from(10000)).toDouble() / 10000 * 2 * pi + pi / 2;
   }
 
   double get sunlight {
@@ -96,7 +113,7 @@ class GameState {
   void buildCell(Cell cell) {
     if (tree.contains(cell)) {
       if (cell.y > 0) {
-        tree.addRhyzome(cell);
+        tree.addRhizome(cell);
       } else if (cell.y < 0) {
       }
     } else {
@@ -112,8 +129,8 @@ class _Resources {
   double water;
 
   _Resources() {
-    this.sun = 1000;
-    this.water = 1000;
+    this.sun = 10000;
+    this.water = 10000;
   }
 
   bool get empty {
@@ -134,3 +151,4 @@ double between(double value, double min, double max) {
   }
   return value;
 }
+

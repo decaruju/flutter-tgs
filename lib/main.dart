@@ -6,9 +6,15 @@ import 'game-state.dart';
 import 'tree-polyomino.dart';
 import 'mouseover.dart';
 import 'package:flutter/rendering.dart';
+import 'ui.dart';
+import 'menu/about.dart';
+import 'menu/stats.dart';
+import 'menubar.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  // debugPaintSizeEnabled = true;
+  // debugPaintSizeEnabled = true;31
+  SystemChrome.setEnabledSystemUIOverlays([]);
   runApp(MyApp());
 }
 
@@ -39,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Timer timer;
   GameState gameState;
   World world;
+  List menus;
 
   @override
   void initState() {
@@ -46,6 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
     this.gameState = GameState(tree: TreePolyomino());
     world = World(seed: widget.seed, gameState: gameState);
     timer = new Timer.periodic(const Duration(milliseconds: 10), tick);
+    menus = [
+      Offstage(),
+      Stats(),
+      About(),
+    ];
   }
 
   void tick(Timer timer) {
@@ -56,51 +68,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Material(
       type: MaterialType.transparency,
       child: Stack(
-        children: <Widget>[
+        children: [
           world,
-          Align(
-            alignment: Alignment(1.0, 1.0),
-            child: Container(
-              color: Colors.black,
-              child: Row(
-                children: <Widget>[
-                  Text(
-                    "Size: ${gameState.tree.cells.length}",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )
-                  ),
-                  Text(
-                    "Leaves: ${gameState.tree.numberOfLeaves}",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )
-                  ),
-                  Text(
-                    "Roots: ${gameState.tree.numberOfRoots}",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )
-                  ),
-                  Text(
-                    "Sun: ${gameState.resources.sun.toInt()}",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )
-                  ),
-                  Text(
-                    "Water: ${gameState.resources.water.toInt()}",
-                    style: TextStyle(
-                      color: Colors.white,
-                    )
-                  ),
-                ],
-              ),
-            ),
+          UI(gameState: gameState),
+          Container(
+            width: size.width,
+            height: size.height*2/3.0,
+            alignment: Alignment(0, 1.0),
+            child: menus[gameState.menu],
           ),
+          MenuBar(gameState: gameState),
         ],
       ),
     );
